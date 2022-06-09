@@ -25,12 +25,7 @@ int main(int argc, char** argv) {
  	// **************************************//
 	// Write your code here
 	// CAUTION: DO NOT MODITY OTHER PART OF THE main() FUNCTION
-	
-	if (on) {
 
-
-
-	}
 	DS_timer timer1(10);
 	timer1.initTimers();
 	timer1.setTimerName(0, (char*)"Total");
@@ -40,11 +35,9 @@ int main(int argc, char** argv) {
 	FILE* fp1 = NULL;
 	UINT numArmies[2] = { 0, };
 	Team2* jojo, * alliance;
-	float* djojo, * dalliance;
-	float* djojoA, * dallianceA;
+	Army2* djojoA, * dallianceA;
 	Team2 teams [NUM_TEAM];
-	memset(&teams, 0, sizeof(struct Team2) * NUM_TEAM);
-	float* dresult2;
+	Pair2* dresult2, *dresultF;
 	Pair2 results2[NUM_RESULTS];
 
 	timer1.onTimer(0);
@@ -59,30 +52,38 @@ int main(int argc, char** argv) {
 
 		teams[i].numArmies = numArmies[i];
 		teams[i].armies = new Army2[numArmies[i]];
-
-
+		//#pragma omp parallel for
 		for (int ID = 0; ID < numArmies[i]; ID++) {
 			teams[i].armies[ID].ID = (float)ID;
 			if (fread_s(teams[i].armies[ID].pos, sizeof(float) * 3, sizeof(float), 3, fp1) == 0) {
+
 				numArmies[i] = ID;
 				break;
 			}
+
 		}
 		fclose(fp1);
 	}
-
 	jojo = &teams[0];
 	alliance = &teams[1];
 
 	
 	// result2 initialization
+	#pragma omp parallel for
 	for (int i = 0; i < NUM_RESULTS; i++) {
 		results2[i].dist = RANGE_MAX;
 		results2[i].A = 0;
 		results2[i].B = 0;
 	}
+
+	LOOP_I(jojo->numArmies) {
+		//printf("cpu %d %d %lf %lf %lf\n", i, jojo->armies->ID, jojo->armies->pos[0], jojo->armies->pos[1], jojo->armies->pos[2]);
+	}
 	
 	timer1.onTimer(1);
+
+	dim3 blockDim(BLOCK_SIZE);
+	dim3 gridDim(ceil((float)(jojo->numArmies) / blockDim.x));
 
 	// device memory allocation
 	cudaMalloc(&djojoA, sizeof(Army2) * jojo->numArmies);
@@ -91,28 +92,31 @@ int main(int argc, char** argv) {
 	cudaMalloc(&dallianceA, sizeof(Army2) * alliance->numArmies);
 	cudaMemset(dallianceA, 0, sizeof(Army2) * alliance->numArmies);
 
-	cudaMalloc(&dresult2, sizeof(Pair2) * NUM_RESULTS);
-	cudaMemset(dresult2, 0, sizeof(Pair2) * NUM_RESULTS);
+	cudaMalloc(&dresult2, sizeof(Pair2) * NUM_RESULTS * ceil((float)(jojo->numArmies) / blockDim.x));
+	cudaMemset(dresult2, 0, sizeof(Pair2)* NUM_RESULTS * ceil((float)(jojo->numArmies) / blockDim.x));
 
+	cudaMalloc(&dresultF, sizeof(Pair2)* NUM_RESULTS);
+	cudaMemset(dresultF, 0, sizeof(Pair2)* NUM_RESULTS);
+
+	//copy the memory
 	cudaMemcpy(djojoA, jojo->armies, sizeof(Army2) * jojo->numArmies, cudaMemcpyHostToDevice);
 	cudaMemcpy(dallianceA, alliance->armies, sizeof(Army2) * alliance->numArmies, cudaMemcpyHostToDevice);
-	cudaMemcpy(dresult2, results2,  sizeof(Pair2) * NUM_RESULTS, cudaMemcpyHostToDevice);
 	timer1.offTimer(1);
 
 	timer1.onTimer(2);
 
 	//kernel call
-	dim3 blockDim(NUM_T_IN_B);
-	dim3 gridDim(ceil((float)(jojo->numArmies) / blockDim.x));
-	kernelCall(djojoA, dallianceA, dresult2, jojo->numArmies, alliance->numArmies, gridDim, blockDim);
+
+	kernelCall(djojoA, dallianceA, dresult2, jojo->numArmies, alliance->numArmies, gridDim, blockDim, dresultF);
 	timer1.offTimer(2);
 
 
-	cudaMemcpy(results2, dresult2, sizeof(Pair2) * NUM_RESULTS, cudaMemcpyDeviceToHost);
+	cudaMemcpy(results2, dresultF, sizeof(Pair2) * NUM_RESULTS, cudaMemcpyDeviceToHost);
 	
 	//result2 Device -> Host
+	#pragma omp parallel for
 	LOOP_I(NUM_RESULTS) {
-		printf("Results : %lf %lf %lf\n", results2[i].A, results2[i].B, results2[i].dist);
+		printf("Results : %d %d %lf\n", results2[i].A, results2[i].B, results2[i].dist);
 		result[i].A = results2[i].A;
 		result[i].B = results2[i].B;
 		result[i].dist = results2[i].dist;

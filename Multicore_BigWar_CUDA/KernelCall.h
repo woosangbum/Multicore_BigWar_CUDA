@@ -19,20 +19,20 @@
 #define NUM_RESULTS 100
 #define LAST_PAIR (NUM_RESULTS-1)
 
-#define NUM_T_IN_B 512
+#define BLOCK_SIZE 32
 #define NUM_TEAM 2
 
 typedef unsigned int UINT;
 typedef float POS_TYPE;
 
 struct Army2 {
-	POS_TYPE ID;
+	UINT ID;
 	POS_TYPE pos[ARMY_DIMENSION];
 };
 
 struct Team2 {
 	UINT numArmies = 100;
-	struct Army2 *armies;
+	Army2 *armies;
 };
 
 struct Pair2 {
@@ -40,5 +40,5 @@ struct Pair2 {
 	POS_TYPE dist;
 };
 
-bool kernelCall(float* djojoA, float* dallianceA, float* _result, unsigned int Njojo, unsigned int Nalliance,
-	dim3 _griDim, dim3 _blockDim);
+bool kernelCall(Army2* djojoA, Army2* dallianceA, Pair2* _result, unsigned int Njojo, unsigned int Nalliance,
+	dim3 _griDim, dim3 _blockDim , Pair2*_resultF);
