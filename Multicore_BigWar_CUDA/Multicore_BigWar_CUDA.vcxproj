@@ -78,6 +78,7 @@
     <CudaCompile>
       <TargetMachinePlatform>64</TargetMachinePlatform>
       <AdditionalCompilerOptions>/openmp</AdditionalCompilerOptions>
+      <MaxRegCount>32</MaxRegCount>
     </CudaCompile>
   </ItemDefinitionGroup>
   <ItemGroup>

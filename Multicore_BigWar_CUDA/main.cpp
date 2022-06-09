@@ -76,10 +76,6 @@ int main(int argc, char** argv) {
 		results2[i].B = 0;
 	}
 
-	LOOP_I(jojo->numArmies) {
-		//printf("cpu %d %d %lf %lf %lf\n", i, jojo->armies->ID, jojo->armies->pos[0], jojo->armies->pos[1], jojo->armies->pos[2]);
-	}
-	
 	timer1.onTimer(1);
 
 	dim3 blockDim(BLOCK_SIZE);
@@ -92,8 +88,8 @@ int main(int argc, char** argv) {
 	cudaMalloc(&dallianceA, sizeof(Army2) * alliance->numArmies);
 	cudaMemset(dallianceA, 0, sizeof(Army2) * alliance->numArmies);
 
-	cudaMalloc(&dresult2, sizeof(Pair2) * NUM_RESULTS * ceil((float)(jojo->numArmies) / blockDim.x));
-	cudaMemset(dresult2, 0, sizeof(Pair2)* NUM_RESULTS * ceil((float)(jojo->numArmies) / blockDim.x));
+	cudaMalloc(&dresult2, sizeof(Pair2) * NUM_RESULTS * gridDim.x);
+	cudaMemset(dresult2, 0, sizeof(Pair2)* NUM_RESULTS * gridDim.x);
 
 	cudaMalloc(&dresultF, sizeof(Pair2)* NUM_RESULTS);
 	cudaMemset(dresultF, 0, sizeof(Pair2)* NUM_RESULTS);

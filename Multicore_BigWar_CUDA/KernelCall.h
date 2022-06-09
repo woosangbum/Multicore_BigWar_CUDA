@@ -18,8 +18,7 @@
 #define ARMY_DIMENSION 3
 #define NUM_RESULTS 100
 #define LAST_PAIR (NUM_RESULTS-1)
-
-#define BLOCK_SIZE 32
+#define BLOCK_SIZE 256
 #define NUM_TEAM 2
 
 typedef unsigned int UINT;
