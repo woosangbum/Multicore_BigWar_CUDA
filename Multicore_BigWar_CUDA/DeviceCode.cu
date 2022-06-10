@@ -91,6 +91,8 @@ __global__ void addKernel(Army2* djojoA, Army2* dallianceA, Pair2* _result, unsi
             }
             else {
                 //dp = { subJojo[localIdx].ID, subAlliance[i].ID, dist(&subJojo[localIdx], &subAlliance[i]) };
+                dp = { subJojo[localIdx].ID, subAlliance[(i+localIdx)%BLOCK_SIZE].ID, dist(&subJojo[localIdx], &subAlliance[(i + localIdx) % BLOCK_SIZE]) };
+                // No BankConflict
             }
 
             blockResult[NUM_RESULTS + localIdx] = dp;
