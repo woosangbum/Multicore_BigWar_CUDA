@@ -6,7 +6,7 @@
 #include <cmath>
 
 #define RANGE_MIN (0)
-#define RANGE_MAX (1024*1024)
+#define RANGE_MAX (1024.0*1024.0* 6.0)
 #define	ARMY_DIMENSION 3
 #define EPSILON (10e-6)
 

@@ -14,6 +14,7 @@
 #include <algorithm>
 
 #define LOOP_I(_loop) for(int i=0; i < _loop; i++)
+#define LOOP_J(_loop) for(int j=0; j < _loop; j++)
 
 #define ARMY_DIMENSION 3
 #define NUM_RESULTS 100
